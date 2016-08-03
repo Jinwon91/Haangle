@@ -1,9 +1,7 @@
 package crawler;
 
-import java.io.BufferedReader;
+
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -13,16 +11,9 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Queue;
 import java.util.StringTokenizer;
 
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.ContentType;
-import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.ibatis.session.SqlSession;
 import org.htmlparser.util.ParserException;
 import org.jsoup.Jsoup;
@@ -33,17 +24,23 @@ import org.jsoup.select.Elements;
 import kr.co.shineware.nlp.komoran.core.analyzer.Komoran;
 import kr.co.shineware.util.common.model.Pair;
 
-public class JavaWebCrawler {
+public class JavaWebCrawlerWithThread implements Runnable {
 
 	static ArrayList<String> list = new ArrayList<>();
 	SqlSession ss = DBService.getFactory().openSession(true);
 	List<Word> wordList = new ArrayList<>();
 	StringTokenizer st;
 
-	static Queue<String> queue = new LinkedList<String>();
-	static LinkedHashSet<String> marked = new LinkedHashSet<String>();
+	Queue<String> queue = new LinkedList<String>();
+	LinkedHashSet<String> marked = new LinkedHashSet<String>();
 	private static final int NUMBER_OF_LINKS = 1000;
-
+	private String url;
+	
+	public JavaWebCrawlerWithThread() {}
+	public JavaWebCrawlerWithThread(String url) {
+		this.url = url;
+	}
+	
 	public void crawler(String startURL) throws IOException, ParserException {
 		int i;
 
@@ -89,7 +86,7 @@ public class JavaWebCrawler {
 	
 					links = doc.select("a");
 					for (Element link : links) {
-						if (link.attr("abs:href").startsWith("http") && link.attr("abs:href").contains("chosun.com")) {
+						if (link.attr("abs:href").startsWith("http") && link.attr("abs:href").contains(url.substring(11))) {
 							boolean flag = false;
 							for (String str : list) {
 								if (link.attr("abs:href").equals(str)) {
@@ -179,5 +176,18 @@ public class JavaWebCrawler {
 		map.put("word_type", word.getWord_type());
 		map.put("position", word.getPosition() + "");
 		ss.insert("InsertWord", map);
+	}
+
+	@Override
+	public void run() {
+		try {
+			crawler(url);
+		} catch (ParserException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 }
