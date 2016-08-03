@@ -45,29 +45,28 @@ public class JavaWebCrawler {
 	private static final int NUMBER_OF_LINKS = 1000;
 
 	public void crawler(String startURL) throws IOException, ParserException {
-		try {
-			int i;
-			
-			// 큐랑 완료된거에 시작 주소 넣어놓고 시작
-			queue.add(startURL);
-			marked.add(startURL);
+		int i;
 
-			Document doc = Jsoup.connect(startURL).get();
-			System.out.println("---------------------------------------------------------");
+		// 큐랑 완료된거에 시작 주소 넣어놓고 시작
+		queue.add(startURL);
+		marked.add(startURL);
 
-			Elements links;
-			String bodyContent = doc.select("body").text();
-			while (!queue.isEmpty()) { // 큐가 비어있으면 종료
-				boolean flag = false;
+		Document doc = Jsoup.connect(startURL).get();
+		System.out.println("---------------------------------------------------------");
+
+		Elements links;
+		String bodyContent = doc.select("body").text();
+		while (!queue.isEmpty()) { // 큐가 비어있으면 종료
+			try {
 				String nextURL = queue.remove();
-
-				System.out.println("This URL : "+nextURL);
+	
+				System.out.println("This URL : " + nextURL);
 				if (bodyContent != null || bodyContent.trim().equals("")) {
 					doc = Jsoup.connect(nextURL).get();
 					// url에 해당하는 내용 삽입
 					insertContent(doc.select("body:not(ul a)").text(), nextURL, doc.select("title").text());
 					String h1 = doc.select("h1").text(); // h1 태그 값
-
+	
 					// h1 태그 단어 삽입
 					int positionH1 = 0;
 					st = new StringTokenizer(h1, "?.!");
@@ -75,39 +74,39 @@ public class JavaWebCrawler {
 						insertWord(st.nextToken(), positionH1 + "");
 						positionH1++;
 					}
-
+	
 					// body 태그 단어 삽입
 					int positionContent = 0;
-					st = new StringTokenizer(doc.select("body:not(ul a)").text(), "?.!"); // 문장 단위로 나눔
+					st = new StringTokenizer(doc.select("body:not(ul a)").text(), "?.!"); // 문장
+																							// 단위로
+																							// 나눔
 					while (st.hasMoreTokens()) {
 						insertWord(st.nextToken(), positionContent + "");
 						positionContent++;
 					}
-			
+	
 					wordListInsert();
-
+	
 					links = doc.select("a");
 					for (Element link : links) {
 						if (link.attr("abs:href").startsWith("http") && link.attr("abs:href").contains("chosun.com")) {
-							for (String str : queue) {
+							boolean flag = false;
+							for (String str : list) {
 								if (link.attr("abs:href").equals(str)) {
 									flag = true;
 									break;
 								}
 							}
-							if(!flag){
-								System.out.println("HREF : " + link.attr("href"));
+							if (!flag) {
+								System.out.println("HREF : " + link.attr("abs:href"));
+								list.add(link.attr("abs:href"));
 								queue.add(link.attr("abs:href"));
 							}
-							
+	
 						}
 					}
 				}
-			}					
-		} catch (Exception e) {
-			e.printStackTrace();
-			return;
-			
+			}catch(Exception e){}
 		}
 	}
 
@@ -137,7 +136,8 @@ public class JavaWebCrawler {
 							}
 						}
 						if (flag) {
-							wordList.add(new Word(wordMorph.getFirst(), Integer.parseInt(position), wordMorph.getSecond()));
+							wordList.add(
+									new Word(wordMorph.getFirst(), Integer.parseInt(position), wordMorph.getSecond()));
 						}
 					}
 				}
