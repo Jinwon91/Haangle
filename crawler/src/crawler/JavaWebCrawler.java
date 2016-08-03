@@ -37,7 +37,9 @@ public class JavaWebCrawler {
 
 	public void crawler(String href) throws IOException, ParserException {
 		try {
-
+			rear = 0;
+			front = 0;
+			
 			HttpPost http = new HttpPost(href);
 
 			HttpClient httpClient = HttpClientBuilder.create().build();
