@@ -6,8 +6,10 @@ import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.StringTokenizer;
 
 import org.apache.http.HttpEntity;
@@ -30,6 +32,8 @@ public class JavaWebCrawler {
 
 	static ArrayList<String> list = new ArrayList<>();
 	SqlSession ss = DBService.getFactory().openSession(true);
+	Queue<String> queue = new LinkedList<>();
+	int rear, front;
 
 	public void crawler(String href) throws IOException, ParserException {
 		try {
