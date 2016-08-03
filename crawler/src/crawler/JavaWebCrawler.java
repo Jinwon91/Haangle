@@ -9,9 +9,11 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Queue;
 import java.util.StringTokenizer;
 
@@ -38,93 +40,74 @@ public class JavaWebCrawler {
 	List<Word> wordList = new ArrayList<>();
 	StringTokenizer st;
 
-	public void crawler(String href) throws IOException, ParserException {
+	static Queue<String> queue = new LinkedList<String>();
+	static LinkedHashSet<String> marked = new LinkedHashSet<String>();
+	private static final int NUMBER_OF_LINKS = 1000;
+
+	public void crawler(String startURL) throws IOException, ParserException {
 		try {
 			int i;
-			HttpPost http = new HttpPost(href);
-
-			HttpClient httpClient = HttpClientBuilder.create().build();
-
-			HttpResponse response = httpClient.execute(http);
-
-			HttpEntity entity = response.getEntity();
-
-			ContentType contentType = ContentType.getOrDefault(entity);
-			Charset charset = contentType.getCharset();
-
-			BufferedReader br = null;
-
-			if (charset != null) {
-				br = new BufferedReader(new InputStreamReader(entity.getContent(), charset));
-			} else {
-				charset = Charset.defaultCharset();
-				br = new BufferedReader(new InputStreamReader(entity.getContent(), charset));
-			}
-
-			StringBuffer sb = new StringBuffer();
-
-			String line = "";
-			while ((line = br.readLine()) != null) {
-				sb.append(line + "\n");
-			}
-
-			Document doc = Jsoup.connect(href).get();
-
-			System.out.println("---------------------------------------------------------");
-			String content = doc.select("body:not(ul a)").text(); // ul a 태그 뺀
-																	// body 내에서의
-																	// 텍스트
-			String h1 = doc.select("h1").text(); // h1 태그 값
-			String title = doc.select("title").text();
-
-			insertContent(content, href, title); // url, body content 삽입
-
-			// h1 태그 단어 삽입
-			int positionH1 = 0;
-			st = new StringTokenizer(h1, "?.!");
-			while (st.hasMoreTokens()) {
-				insertWord(st.nextToken(), positionH1 + "");
-				positionH1++;
-			}
-
-			// body 태그 단어 삽입
-			int positionContent = 0;
-			st = new StringTokenizer(content, "?.!"); // 문장 단위로 나눔
-			while (st.hasMoreTokens()) {
-				insertWord(st.nextToken(), positionContent + "");
-				positionContent++;
-			}
 			
-			wordListInsert();
+			// 큐랑 완료된거에 시작 주소 넣어놓고 시작
+			queue.add(startURL);
+			marked.add(startURL);
 
-			// 출력
+			Document doc = Jsoup.connect(startURL).get();
 			System.out.println("---------------------------------------------------------");
 
-			// href link 삽입
-			Elements eles = doc.select("body");
-			boolean flag = false;
-			if (eles.get(0).text() != null || eles.get(0).text().trim().equals("")) {
-				eles = doc.select("a");
-				for (Element e : eles) {
-					if (e.attr("href").startsWith("http")) {
-						for (String str : list) {
-							if (e.attr("href").equals(str)) {
-								flag = true;
-								break;
+			Elements links;
+			String bodyContent = doc.select("body").text();
+			while (!queue.isEmpty()) { // 큐가 비어있으면 종료
+				boolean flag = false;
+				String nextURL = queue.remove();
+
+				System.out.println("This URL : "+nextURL);
+				if (bodyContent != null || bodyContent.trim().equals("")) {
+					doc = Jsoup.connect(nextURL).get();
+					// url에 해당하는 내용 삽입
+					insertContent(doc.select("body:not(ul a)").text(), nextURL, doc.select("title").text());
+					String h1 = doc.select("h1").text(); // h1 태그 값
+
+					// h1 태그 단어 삽입
+					int positionH1 = 0;
+					st = new StringTokenizer(h1, "?.!");
+					while (st.hasMoreTokens()) {
+						insertWord(st.nextToken(), positionH1 + "");
+						positionH1++;
+					}
+
+					// body 태그 단어 삽입
+					int positionContent = 0;
+					st = new StringTokenizer(doc.select("body:not(ul a)").text(), "?.!"); // 문장 단위로 나눔
+					while (st.hasMoreTokens()) {
+						insertWord(st.nextToken(), positionContent + "");
+						positionContent++;
+					}
+			
+					wordListInsert();
+
+					links = doc.select("a");
+					for (Element link : links) {
+						if (link.attr("abs:href").startsWith("http") && link.attr("abs:href").contains("chosun.com")) {
+							for (String str : queue) {
+								if (link.attr("abs:href").equals(str)) {
+									flag = true;
+									break;
+								}
 							}
-						}
-						if (!flag) {
-							System.out.println("HREF : " + e.attr("href"));
-							list.add(e.attr("href"));
-							// 재귀
-							JavaWebCrawler crawler = new JavaWebCrawler();
-							crawler.crawler(e.attr("href"));
+							if(!flag){
+								System.out.println("HREF : " + link.attr("href"));
+								queue.add(link.attr("abs:href"));
+							}
+							
 						}
 					}
 				}
-			}
+			}					
 		} catch (Exception e) {
+			e.printStackTrace();
 			return;
+			
 		}
 	}
 
@@ -154,8 +137,7 @@ public class JavaWebCrawler {
 							}
 						}
 						if (flag) {
-							wordList.add(
-									new Word(wordMorph.getFirst(), Integer.parseInt(position), wordMorph.getSecond()));
+							wordList.add(new Word(wordMorph.getFirst(), Integer.parseInt(position), wordMorph.getSecond()));
 						}
 					}
 				}
