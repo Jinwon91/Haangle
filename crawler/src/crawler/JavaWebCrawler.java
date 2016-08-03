@@ -123,7 +123,7 @@ public class JavaWebCrawler {
 
 	//해당 페이지 내의 내용 형태소 분석 후 단어별 저장 (명사 ,부정동사)
 	public void insertWord(String splitStr, String position) {
-		Komoran komoran = new Komoran("C:\\Users\\ChoiJinwoong\\Downloads\\models-light");
+		Komoran komoran = new Komoran("lib/models-light");
 		List<List<Pair<String, String>>> result2 = komoran.analyze(splitStr);
 		try {
 			for (List<Pair<String, String>> eojeolResult : result2) {
