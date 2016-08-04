@@ -80,6 +80,7 @@ public class JavaWebCrawlerWithThread implements Runnable {
 					while (st.hasMoreTokens()) {
 						insertWord(st.nextToken(), positionContent + "");
 						positionContent++;
+						/*System.out.println(positionContent);*/
 					}
 	
 					wordListInsert();
@@ -95,7 +96,6 @@ public class JavaWebCrawlerWithThread implements Runnable {
 								}
 							}
 							if (!flag) {
-								System.out.println("HREF : " + link.attr("abs:href"));
 								list.add(link.attr("abs:href"));
 								queue.add(link.attr("abs:href"));
 							}
@@ -118,12 +118,14 @@ public class JavaWebCrawlerWithThread implements Runnable {
 
 	// 해당 페이지 내의 내용 형태소 분석 후 단어별 저장 (명사 ,부정동사)
 	public void insertWord(String splitStr, String position) {
+		/*System.out.println(position);*/
 		Komoran komoran = new Komoran("lib/models-light");
 		List<List<Pair<String, String>>> result2 = komoran.analyze(splitStr);
 		try {
 			for (List<Pair<String, String>> eojeolResult : result2) {
 				for (Pair<String, String> wordMorph : eojeolResult) {
-					if (wordMorph.getSecond().equals("NNG") || wordMorph.getSecond().equals("VX")) {
+					if (wordMorph.getSecond().equals("NNG")) {
+						// || wordMorph.getSecond().equals("VX") 동사 제거
 						int i;
 						boolean flag = true;
 						for (i = 0; i < wordList.size(); i++) {
@@ -133,8 +135,7 @@ public class JavaWebCrawlerWithThread implements Runnable {
 							}
 						}
 						if (flag) {
-							wordList.add(
-									new Word(wordMorph.getFirst(), Integer.parseInt(position), wordMorph.getSecond()));
+							wordList.add(new Word(wordMorph.getFirst(), Integer.parseInt(position), wordMorph.getSecond()));
 						}
 					}
 				}
@@ -159,12 +160,13 @@ public class JavaWebCrawlerWithThread implements Runnable {
 		});
 
 		Iterator<Word> itr = wordList.iterator();
+		int up20 = wordList.size()/5;
 		int count = 0;
 		while (itr.hasNext()) {
 			count++;
-			if (count >= 17)
+			if (count >= up20+30)
 				break;
-			if (count > 2)
+			if (count > up20)
 				insert(itr.next());
 		}
 	}
@@ -175,6 +177,7 @@ public class JavaWebCrawlerWithThread implements Runnable {
 		map.put("word", word.getWord());
 		map.put("word_type", word.getWord_type());
 		map.put("position", word.getPosition() + "");
+		/*System.out.println(word.getPosition());*/
 		ss.insert("InsertWord", map);
 	}
 

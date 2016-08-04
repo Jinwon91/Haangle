@@ -10,6 +10,7 @@ class Word {
 	public Word(String word, int position, String word_type) {
 		this.word = word;
 		this.word_type = word_type;
+		this.position = position;
 		hit = 0;
 	}
 
