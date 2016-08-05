@@ -61,7 +61,8 @@ public class JavaWebCrawlerWithThread implements Runnable {
 				if (bodyContent != null || bodyContent.trim().equals("")) {
 					doc = Jsoup.connect(nextURL).get();
 					// url에 해당하는 내용 삽입
-					insertContent(doc.select("body:not(ul a)").text(), nextURL, doc.select("title").text());
+					insertContent(doc.select("body").select(":not(ul)").select(":not(li)").select(":not(a)").text(), nextURL, doc.select("title").text());
+					
 					String h1 = doc.select("h1").text(); // h1 태그 값
 	
 					// h1 태그 단어 삽입
@@ -74,7 +75,7 @@ public class JavaWebCrawlerWithThread implements Runnable {
 	
 					// body 태그 단어 삽입
 					int positionContent = 0;
-					st = new StringTokenizer(doc.select("body:not(ul a)").text(), "?.!"); // 문장
+					st = new StringTokenizer(doc.select("body").select(":not(ul)").select(":not(li)").select(":not(a)").text(), "?.!"); // 문장
 																							// 단위로
 																							// 나눔
 					while (st.hasMoreTokens()) {
@@ -160,7 +161,7 @@ public class JavaWebCrawlerWithThread implements Runnable {
 		});
 
 		Iterator<Word> itr = wordList.iterator();
-		int up20 = wordList.size()/5;
+		int up20 = wordList.size()/2;
 		int count = 0;
 		while (itr.hasNext()) {
 			count++;
@@ -177,7 +178,6 @@ public class JavaWebCrawlerWithThread implements Runnable {
 		map.put("word", word.getWord());
 		map.put("word_type", word.getWord_type());
 		map.put("position", word.getPosition() + "");
-		/*System.out.println(word.getPosition());*/
 		ss.insert("InsertWord", map);
 	}
 
