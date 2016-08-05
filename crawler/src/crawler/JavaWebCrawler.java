@@ -34,23 +34,22 @@ import kr.co.shineware.nlp.komoran.core.analyzer.Komoran;
 import kr.co.shineware.util.common.model.Pair;
 
 public class JavaWebCrawler {
-
-	static ArrayList<String> list = new ArrayList<>();
+	int queueCnt=0;
+	static ArrayList<PageRankVO> urlList = new ArrayList<>();
 	SqlSession ss = DBService.getFactory().openSession(true);
 	List<Word> wordList = new ArrayList<>();
 	StringTokenizer st;
 
 	static Queue<String> queue = new LinkedList<String>();
-	static LinkedHashSet<String> marked = new LinkedHashSet<String>();
-	private static final int NUMBER_OF_LINKS = 1000;
 
 	public void crawler(String startURL) throws IOException, ParserException {
-		int i;
 
+		PageRankVO rankVO = new PageRankVO(startURL);
+		
 		// 큐랑 완료된거에 시작 주소 넣어놓고 시작
 		queue.add(startURL);
-		marked.add(startURL);
-
+		urlList.add(rankVO);
+		
 		Document doc = Jsoup.connect(startURL).get();
 		System.out.println("---------------------------------------------------------");
 
@@ -59,8 +58,14 @@ public class JavaWebCrawler {
 		while (!queue.isEmpty()) { // 큐가 비어있으면 종료
 			try {
 				String nextURL = queue.remove();
+				queueCnt++;	//queue 하나 제거하며 돌때마다 count-up
+				
+				//pageRank 업데이트하기(queue 1000회마다)
+				if(queueCnt%1000==0)
+					ss.update("UpdatePageRank", urlList);
 	
 				System.out.println("This URL : " + nextURL);
+				
 				if (bodyContent != null || bodyContent.trim().equals("")) {
 					doc = Jsoup.connect(nextURL).get();
 					// url에 해당하는 내용 삽입
@@ -90,16 +95,20 @@ public class JavaWebCrawler {
 					links = doc.select("a");
 					for (Element link : links) {
 						if (link.attr("abs:href").startsWith("http") && link.attr("abs:href").contains("chosun.com")) {
-							boolean flag = false;
-							for (String str : list) {
-								if (link.attr("abs:href").equals(str)) {
-									flag = true;
+							boolean isDuplicatedUrl = false;
+							for (PageRankVO pageRank : urlList) {
+								if (link.attr("abs:href").equals(pageRank.getUrl())) {	//link 중복됐는가? (urlList와 비교)
+									pageRank.rankPlus();
+									isDuplicatedUrl = true;
 									break;
 								}
 							}
-							if (!flag) {
+							if (!isDuplicatedUrl) {	//바라보고 있는 링크 추가
 								System.out.println("HREF : " + link.attr("abs:href"));
-								list.add(link.attr("abs:href"));
+								
+								PageRankVO pageToAdd = new PageRankVO(link.attr("abs:href"));
+								urlList.add(pageToAdd);
+								
 								queue.add(link.attr("abs:href"));
 							}
 	
@@ -107,7 +116,7 @@ public class JavaWebCrawler {
 					}
 				}
 			}catch(Exception e){}
-		}
+		}	//end of while
 	}
 
 	// 접근한 url과 해당 페이지 내용 insert

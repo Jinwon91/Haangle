@@ -9,7 +9,12 @@
 	<insert id="InsertWord" parameterType="Map">
 		insert into word_table values(word_seq.nextval, #{word}, content_seq.currval, 0, #{position}, #{word_type})
 	</insert>
-
+	
+	<update id="UpdatePageRank" parameterType="java.util.ArrayList">
+		<foreach collection="list">
+			update content_table set pageRank=#{pageRank} where url=#{url}
+		</foreach>
+	</update>
 </mapper>
 
 
