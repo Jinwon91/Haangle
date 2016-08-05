@@ -61,15 +61,27 @@ public class JavaWebCrawler {
 				queueCnt++;	//queue 하나 제거하며 돌때마다 count-up
 				
 				//pageRank 업데이트하기(queue 1000회마다)
-				if(queueCnt%1000==0)
-					ss.update("UpdatePageRank", urlList);
-	
+				if(queueCnt%10==0){
+					updatePageRank(urlList);
+					System.out.println("update completed");
+				}
 				System.out.println("This URL : " + nextURL);
 				
 				if (bodyContent != null || bodyContent.trim().equals("")) {
 					doc = Jsoup.connect(nextURL).get();
+					String html = doc.html();
+					Document doc2 = Jsoup.parse(html);
+					
+					Elements elements = doc2.select("body");
+					Elements del_element = elements.select("a, ul, span, h2, h3, h4, h5, h6, h7, dl, table");
+					del_element.empty();
+					String res = elements.text();
+					System.out.println(res);
 					// url에 해당하는 내용 삽입
-					insertContent(doc.select("body:not(ul a)").text(), nextURL, doc.select("title").text());
+					/*insertContent(doc.select("body").select(":not(ul)").select(":not(li)").select(":not(a)").text(), nextURL, doc.select("title").text());*/
+					insertContent(res, nextURL, doc.select("title").text());
+					
+					
 					String h1 = doc.select("h1").text(); // h1 태그 값
 	
 					// h1 태그 단어 삽입
@@ -104,8 +116,6 @@ public class JavaWebCrawler {
 								}
 							}
 							if (!isDuplicatedUrl) {	//바라보고 있는 링크 추가
-								System.out.println("HREF : " + link.attr("abs:href"));
-								
 								PageRankVO pageToAdd = new PageRankVO(link.attr("abs:href"));
 								urlList.add(pageToAdd);
 								
@@ -115,7 +125,7 @@ public class JavaWebCrawler {
 						}
 					}
 				}
-			}catch(Exception e){}
+			}catch(Exception e){e.printStackTrace();}
 		}	//end of while
 	}
 
@@ -189,4 +199,11 @@ public class JavaWebCrawler {
 		map.put("position", word.getPosition() + "");
 		ss.insert("InsertWord", map);
 	}
+	
+	public void updatePageRank(ArrayList<PageRankVO> pageRankVOs){
+		for (PageRankVO pageRankVO : pageRankVOs) {
+			ss.update("UpdatePageRank", pageRankVO);
+		}
+	}
+	
 }
