@@ -60,8 +60,18 @@ public class JavaWebCrawlerWithThread implements Runnable {
 				System.out.println("This URL : " + nextURL);
 				if (bodyContent != null || bodyContent.trim().equals("")) {
 					doc = Jsoup.connect(nextURL).get();
+					String html = doc.html();
+					Document doc2 = Jsoup.parse(html);
+					
+					Elements elements = doc2.select("body");
+					Elements del_element = elements.select("a, ul, span, h2, h3, h4, h5, h6, h7, dl, table");
+					del_element.empty();
+					String res = elements.text();
+					System.out.println(res);
 					// url에 해당하는 내용 삽입
-					insertContent(doc.select("body").select(":not(ul)").select(":not(li)").select(":not(a)").text(), nextURL, doc.select("title").text());
+					/*insertContent(doc.select("body").select(":not(ul)").select(":not(li)").select(":not(a)").text(), nextURL, doc.select("title").text());*/
+					insertContent(res, nextURL, doc.select("title").text());
+					
 					
 					String h1 = doc.select("h1").text(); // h1 태그 값
 	
@@ -161,7 +171,7 @@ public class JavaWebCrawlerWithThread implements Runnable {
 		});
 
 		Iterator<Word> itr = wordList.iterator();
-		int up20 = wordList.size()/2;
+		int up20 = wordList.size()/5;
 		int count = 0;
 		while (itr.hasNext()) {
 			count++;
