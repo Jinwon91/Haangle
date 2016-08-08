@@ -34,23 +34,22 @@ import kr.co.shineware.nlp.komoran.core.analyzer.Komoran;
 import kr.co.shineware.util.common.model.Pair;
 
 public class JavaWebCrawler {
-
-	static ArrayList<String> list = new ArrayList<>();
+	int queueCnt=0;
+	static ArrayList<PageRankVO> urlList = new ArrayList<>();
 	SqlSession ss = DBService.getFactory().openSession(true);
 	
 	StringTokenizer st;
 
 	static Queue<String> queue = new LinkedList<String>();
-	static LinkedHashSet<String> marked = new LinkedHashSet<String>();
-	private static final int NUMBER_OF_LINKS = 1000;
 
 	public void crawler(String startURL) throws IOException, ParserException {
-		int i;
 
+		PageRankVO rankVO = new PageRankVO(startURL);
+		
 		// 큐랑 완료된거에 시작 주소 넣어놓고 시작
 		queue.add(startURL);
-		marked.add(startURL);
-
+		urlList.add(rankVO);
+		
 		Document doc = Jsoup.connect(startURL).get();
 		System.out.println("---------------------------------------------------------");
 
@@ -60,13 +59,33 @@ public class JavaWebCrawler {
 			try {
 				String nextURL = queue.remove();
 				List<Word> wordList = new ArrayList<>();
+
+				queueCnt++;	//queue 하나 제거하며 돌때마다 count-up
+				
+				//pageRank 업데이트하기(queue 1000회마다)
+				if(queueCnt%10==0){
+					updatePageRank(urlList);
+					System.out.println("update completed");
+				}
+
 				System.out.println("This URL : " + nextURL);
 				
 				if (bodyContent != null || bodyContent.trim().equals("")) {
 					doc = Jsoup.connect(nextURL).get();
+					String html = doc.html();
+					Document doc2 = Jsoup.parse(html);
+					
+					Elements elements = doc2.select("body");
+					Elements del_element = elements.select("a, ul, span, h2, h3, h4, h5, h6, h7, dl, table");
+					del_element.empty();
+					String res = elements.text();
+					System.out.println(res);
 					// url에 해당하는 내용 삽입
-					insertContent(doc.select("body:not(ul a)").text(), nextURL, doc.select("title").text());
 
+					/*insertContent(doc.select("body").select(":not(ul)").select(":not(li)").select(":not(a)").text(), nextURL, doc.select("title").text());*/
+					insertContent(res, nextURL, doc.select("title").text());
+					
+		
 					// body 태그 단어 삽입
 					int positionContent = 0;
 					st = new StringTokenizer(doc.select("body:not(ul a)").text(), "?.!"); // 문장
@@ -82,24 +101,25 @@ public class JavaWebCrawler {
 					links = doc.select("a");
 					for (Element link : links) {
 						if (link.attr("abs:href").startsWith("http") && link.attr("abs:href").contains("chosun.com")) {
-							boolean flag = false;
-							for (String str : list) {
-								if (link.attr("abs:href").equals(str)) {
-									flag = true;
+							boolean isDuplicatedUrl = false;
+							for (PageRankVO pageRank : urlList) {
+								if (link.attr("abs:href").equals(pageRank.getUrl())) {	//link 중복됐는가? (urlList와 비교)
+									pageRank.rankPlus();
+									isDuplicatedUrl = true;
 									break;
 								}
 							}
-							if (!flag) {
-								System.out.println("HREF : " + link.attr("abs:href"));
-								list.add(link.attr("abs:href"));
+							if (!isDuplicatedUrl) {	//바라보고 있는 링크 추가
+								PageRankVO pageToAdd = new PageRankVO(link.attr("abs:href"));
+								urlList.add(pageToAdd);
 								queue.add(link.attr("abs:href"));
 							}
 	
 						}
 					}
 				}
-			}catch(Exception e){}
-		}
+			}catch(Exception e){e.printStackTrace();}
+		}	//end of while
 	}
 
 	// 접근한 url과 해당 페이지 내용 insert
@@ -172,4 +192,11 @@ public class JavaWebCrawler {
 		map.put("position", word.getPosition() + "");
 		ss.insert("InsertWord", map);
 	}
+	
+	public void updatePageRank(ArrayList<PageRankVO> pageRankVOs){
+		for (PageRankVO pageRankVO : pageRankVOs) {
+			ss.update("UpdatePageRank", pageRankVO);
+		}
+	}
+	
 }

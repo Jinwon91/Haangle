@@ -24,8 +24,8 @@ import kr.co.shineware.nlp.komoran.core.analyzer.Komoran;
 import kr.co.shineware.util.common.model.Pair;
 
 public class JavaWebCrawlerWithThread implements Runnable {
-
-	static ArrayList<String> list = new ArrayList<>();
+	int queueCnt=0;
+	static ArrayList<PageRankVO> urlList = new ArrayList<>();
 	SqlSession ss = DBService.getFactory().openSession(true);
 	StringTokenizer st;
 	Queue<String> queue = new LinkedList<String>();
@@ -38,9 +38,12 @@ public class JavaWebCrawlerWithThread implements Runnable {
 	
 	public void crawler(String startURL) throws IOException, ParserException {
 		int i;
-
+		
+		PageRankVO rankVO = new PageRankVO(startURL);
+		
 		// 큐랑 완료된거에 시작 주소 넣어놓고 시작
 		queue.add(startURL);
+		urlList.add(rankVO);
 
 		Document doc = Jsoup.connect(startURL).get();
 		System.out.println("---------------------------------------------------------");
@@ -51,6 +54,14 @@ public class JavaWebCrawlerWithThread implements Runnable {
 			try {
 				List<Word> wordList = new ArrayList<>();
 				String nextURL = queue.remove();
+				
+				queueCnt++;	//queue 하나 제거하며 돌때마다 count-up
+				
+				//pageRank 업데이트하기(queue 1000회마다)
+				if(queueCnt%10==0){
+					updatePageRank(urlList);
+					System.out.println("update completed");
+				}
 	
 				System.out.println("This URL : " + nextURL);
 				if (bodyContent != null || bodyContent.trim().equals("")) {
@@ -80,15 +91,17 @@ public class JavaWebCrawlerWithThread implements Runnable {
 					links = doc.select("a");
 					for (Element link : links) {
 						if (link.attr("abs:href").startsWith("http") && link.attr("abs:href").contains(url.substring(11))) {
-							boolean flag = false;
-							for (String str : list) {
-								if (link.attr("abs:href").equals(str)) {
-									flag = true;
+							boolean isDuplicatedUrl = false;
+							for (PageRankVO pageRank : urlList) {
+								if (link.attr("abs:href").equals(pageRank.getUrl())) {
+									pageRank.rankPlus();
+									isDuplicatedUrl = true;
 									break;
 								}
 							}
-							if (!flag) {
-								list.add(link.attr("abs:href"));
+							if (!isDuplicatedUrl) {
+								PageRankVO pageToAdd = new PageRankVO(link.attr("abs:href"));
+								urlList.add(pageToAdd);
 								queue.add(link.attr("abs:href"));
 							}
 	
@@ -170,6 +183,12 @@ public class JavaWebCrawlerWithThread implements Runnable {
 		map.put("word_type", word.getWord_type());
 		map.put("position", word.getPosition() + "");
 		ss.insert("InsertWord", map);
+	}
+	
+	public void updatePageRank(ArrayList<PageRankVO> pageRankVOs){
+		for (PageRankVO pageRankVO : pageRankVOs) {
+			ss.update("UpdatePageRank", pageRankVO);
+		}
 	}
 
 	@Override
