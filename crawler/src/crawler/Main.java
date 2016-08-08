@@ -16,9 +16,9 @@ public class Main {
 		href = "http://www.chosun.com";
 		
 		try {
-			JavaWebCrawler crawler = new JavaWebCrawler();
-			crawler.crawler(href);
-		} catch(ClientProtocolException cpe) {
+			JavaWebCrawlerWithThread crawler = new JavaWebCrawlerWithThread(href);
+			new Thread(crawler).start();
+		} catch(Exception cpe) {
 			System.out.println("!!!!");
 		} 
 	}

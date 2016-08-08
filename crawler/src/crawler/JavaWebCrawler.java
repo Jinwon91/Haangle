@@ -37,7 +37,7 @@ public class JavaWebCrawler {
 
 	static ArrayList<String> list = new ArrayList<>();
 	SqlSession ss = DBService.getFactory().openSession(true);
-	List<Word> wordList = new ArrayList<>();
+	
 	StringTokenizer st;
 
 	static Queue<String> queue = new LinkedList<String>();
@@ -59,33 +59,25 @@ public class JavaWebCrawler {
 		while (!queue.isEmpty()) { // 큐가 비어있으면 종료
 			try {
 				String nextURL = queue.remove();
-	
+				List<Word> wordList = new ArrayList<>();
 				System.out.println("This URL : " + nextURL);
+				
 				if (bodyContent != null || bodyContent.trim().equals("")) {
 					doc = Jsoup.connect(nextURL).get();
 					// url에 해당하는 내용 삽입
 					insertContent(doc.select("body:not(ul a)").text(), nextURL, doc.select("title").text());
-					String h1 = doc.select("h1").text(); // h1 태그 값
-	
-					// h1 태그 단어 삽입
-					int positionH1 = 0;
-					st = new StringTokenizer(h1, "?.!");
-					while (st.hasMoreTokens()) {
-						insertWord(st.nextToken(), positionH1 + "");
-						positionH1++;
-					}
-	
+
 					// body 태그 단어 삽입
 					int positionContent = 0;
 					st = new StringTokenizer(doc.select("body:not(ul a)").text(), "?.!"); // 문장
 																							// 단위로
 																							// 나눔
 					while (st.hasMoreTokens()) {
-						insertWord(st.nextToken(), positionContent + "");
+						insertWord(st.nextToken(), positionContent + "", wordList);
 						positionContent++;
 					}
 	
-					wordListInsert();
+					wordListInsert(wordList);
 	
 					links = doc.select("a");
 					for (Element link : links) {
@@ -120,7 +112,7 @@ public class JavaWebCrawler {
 	}
 
 	// 해당 페이지 내의 내용 형태소 분석 후 단어별 저장 (명사 ,부정동사)
-	public void insertWord(String splitStr, String position) {
+	public void insertWord(String splitStr, String position, List<Word> wordList) {
 		Komoran komoran = new Komoran("lib/models-light");
 		List<List<Pair<String, String>>> result2 = komoran.analyze(splitStr);
 		try {
@@ -147,7 +139,7 @@ public class JavaWebCrawler {
 		}
 	}
 
-	public void wordListInsert() {
+	public void wordListInsert(List<Word> wordList) {
 		// WordList based by hit Sorting
 		Collections.sort(wordList, new Comparator<Word>() {
 			@Override

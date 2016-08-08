@@ -4,7 +4,7 @@
  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="CONTENT_TABLE">
 	<insert id="InsertContent" parameterType="Map">
-		insert into content_table values(content_seq.nextval, #{url}, #{content}, #{title}, sysdate, 0 )
+		insert into content_table values(content_seq.nextval, #{url}, #{content}, #{title}, sysdate, 0,0 )
 	</insert>
 	<insert id="InsertWord" parameterType="Map">
 		insert into word_table values(word_seq.nextval, #{word}, content_seq.currval, 0, #{position}, #{word_type})

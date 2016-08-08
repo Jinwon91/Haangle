@@ -1,6 +1,5 @@
 package crawler;
 
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -28,12 +27,8 @@ public class JavaWebCrawlerWithThread implements Runnable {
 
 	static ArrayList<String> list = new ArrayList<>();
 	SqlSession ss = DBService.getFactory().openSession(true);
-	List<Word> wordList = new ArrayList<>();
 	StringTokenizer st;
-
 	Queue<String> queue = new LinkedList<String>();
-	LinkedHashSet<String> marked = new LinkedHashSet<String>();
-	private static final int NUMBER_OF_LINKS = 1000;
 	private String url;
 	
 	public JavaWebCrawlerWithThread() {}
@@ -46,7 +41,6 @@ public class JavaWebCrawlerWithThread implements Runnable {
 
 		// 큐랑 완료된거에 시작 주소 넣어놓고 시작
 		queue.add(startURL);
-		marked.add(startURL);
 
 		Document doc = Jsoup.connect(startURL).get();
 		System.out.println("---------------------------------------------------------");
@@ -55,6 +49,7 @@ public class JavaWebCrawlerWithThread implements Runnable {
 		String bodyContent = doc.select("body").text();
 		while (!queue.isEmpty()) { // 큐가 비어있으면 종료
 			try {
+				List<Word> wordList = new ArrayList<>();
 				String nextURL = queue.remove();
 	
 				System.out.println("This URL : " + nextURL);
@@ -69,32 +64,18 @@ public class JavaWebCrawlerWithThread implements Runnable {
 					String res = elements.text();
 					System.out.println(res);
 					// url에 해당하는 내용 삽입
-					/*insertContent(doc.select("body").select(":not(ul)").select(":not(li)").select(":not(a)").text(), nextURL, doc.select("title").text());*/
 					insertContent(res, nextURL, doc.select("title").text());
-					
-					
-					String h1 = doc.select("h1").text(); // h1 태그 값
-	
-					// h1 태그 단어 삽입
-					int positionH1 = 0;
-					st = new StringTokenizer(h1, "?.!");
-					while (st.hasMoreTokens()) {
-						insertWord(st.nextToken(), positionH1 + "");
-						positionH1++;
-					}
-	
+
 					// body 태그 단어 삽입
 					int positionContent = 0;
-					st = new StringTokenizer(doc.select("body").select(":not(ul)").select(":not(li)").select(":not(a)").text(), "?.!"); // 문장
-																							// 단위로
-																							// 나눔
+					st = new StringTokenizer(res, "?.!"); // 문장
+
 					while (st.hasMoreTokens()) {
-						insertWord(st.nextToken(), positionContent + "");
+						insertWord(st.nextToken(), positionContent + "", wordList);
 						positionContent++;
-						/*System.out.println(positionContent);*/
 					}
 	
-					wordListInsert();
+					wordListInsert(wordList);
 	
 					links = doc.select("a");
 					for (Element link : links) {
@@ -128,7 +109,7 @@ public class JavaWebCrawlerWithThread implements Runnable {
 	}
 
 	// 해당 페이지 내의 내용 형태소 분석 후 단어별 저장 (명사 ,부정동사)
-	public void insertWord(String splitStr, String position) {
+	public void insertWord(String splitStr, String position, List<Word> wordList) {
 		/*System.out.println(position);*/
 		Komoran komoran = new Komoran("lib/models-light");
 		List<List<Pair<String, String>>> result2 = komoran.analyze(splitStr);
@@ -156,7 +137,7 @@ public class JavaWebCrawlerWithThread implements Runnable {
 		}
 	}
 
-	public void wordListInsert() {
+	public void wordListInsert(List<Word> wordList) {
 		// WordList based by hit Sorting
 		Collections.sort(wordList, new Comparator<Word>() {
 			@Override
