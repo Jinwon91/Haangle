@@ -37,8 +37,6 @@ public class JavaWebCrawlerWithThread implements Runnable {
 	}
 	
 	public void crawler(String startURL) throws IOException, ParserException {
-		int i;
-		
 		PageRankVO rankVO = new PageRankVO(startURL);
 		
 		// 큐랑 완료된거에 시작 주소 넣어놓고 시작
@@ -70,10 +68,11 @@ public class JavaWebCrawlerWithThread implements Runnable {
 					Document doc2 = Jsoup.parse(html);
 					
 					Elements elements = doc2.select("body");
-					Elements del_element = elements.select("a, ul, span, h2, h3, h4, h5, h6, h7, dl, table");
+					Elements del_element = elements.select("a, ul, span, h2, h3, h4, h5, h6, h7, dl, table, strong, label, button, input, legend, address, script");
 					del_element.empty();
 					String res = elements.text();
 					System.out.println(res);
+					
 					// url에 해당하는 내용 삽입
 					insertContent(res, nextURL, doc.select("title").text());
 
