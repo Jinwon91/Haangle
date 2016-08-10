@@ -138,7 +138,7 @@ public class JavaWebCrawler {
 		try {
 			for (List<Pair<String, String>> eojeolResult : result2) {
 				for (Pair<String, String> wordMorph : eojeolResult) {
-					if (wordMorph.getSecond().equals("NNG") || wordMorph.getSecond().equals("VX")) {
+					if (wordMorph.getSecond().equals("NNG") || wordMorph.getSecond().equals("NNP")) {
 						int i;
 						boolean flag = true;
 						for (i = 0; i < wordList.size(); i++) {

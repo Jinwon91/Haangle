@@ -5,6 +5,7 @@
 <html>
 <head>
 <meta charset=UTF-8>
+<link rel="shortcut icon" type="image/png" href = "pavi.png" />
 <script type="text/javascript">
 	function search_go(f) {
 		f.action = "search.do";

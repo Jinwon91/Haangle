@@ -3,6 +3,7 @@
 <!DOCTYPE>
 <html>
 <head>
+<link rel="shortcut icon" type="image/png" href = "pavi.png" />
 <script type="text/javascript">
 	function search_go(f) {
 		f.action = "search.do";
@@ -31,7 +32,7 @@
 	
 </style>
 <meta charset= "UTF-8">
-<title>Insert title here</title>
+<title>Haaaaaaaangle !!!</title>
 </head>
 <body>
 	<img style="width: 300; margin-top: 200px" src="images/haanglepng.png" />
