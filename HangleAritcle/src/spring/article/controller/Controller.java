@@ -80,6 +80,7 @@ public class Controller {
 				
 				System.out.print(contentVO.getPosition()+" : ");
 				System.out.println(result);
+				result = result.replaceAll(search, "<b>" + search + "</b>");
 				
 				contentVO.setContent(result);
 				

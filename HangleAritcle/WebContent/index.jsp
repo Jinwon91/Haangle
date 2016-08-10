@@ -28,6 +28,7 @@
 		border: none; 
 		color: #666666;
 	}
+	
 </style>
 <meta charset= "UTF-8">
 <title>Insert title here</title>
@@ -35,7 +36,7 @@
 <body>
 	<img style="width: 300; margin-top: 200px" src="images/haanglepng.png" />
 	<form>
-		<input id="search" type="text" name="search" size="70%" placeholder="검색어">
+		<input id="search" type="text" name="search" size="70%" placeholder="검색어" onkeypress="if(event.keyCode==13) { search_go(this.form);}">
 		<br />
 		<br />
 		<input id="button" type="button" value="Haangle 검색" onclick="search_go(this.form)">
