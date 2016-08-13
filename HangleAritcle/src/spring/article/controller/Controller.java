@@ -1,5 +1,6 @@
 package spring.article.controller;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -10,18 +11,18 @@ import javax.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.ModelAndView;
 
+
 import kr.co.shineware.nlp.komoran.core.analyzer.Komoran;
 import kr.co.shineware.util.common.model.Pair;
 import spring.article.db.ContentVO;
 import spring.article.db.Dao;
 import spring.article.db.Page;
+import spring.article.db.SentenceVO;
 
 @org.springframework.stereotype.Controller
 public class Controller {
 	private Dao dao;
 	private Page page;
-	
-	
 	public Dao getDao() { return dao; }
 	public void setDao(Dao dao) { this.dao = dao; }
 	public Page getPage() { return page; }
@@ -32,14 +33,37 @@ public class Controller {
 		ModelAndView mv = new ModelAndView("searchView");
 		String search = request.getParameter("search");
 		
-		int totalRecord = dao.getTotalCount(search);
+		Komoran komoran = new Komoran("/models-light");
+		List<String> sent = new ArrayList<>();
+		String sentence = "(";
+		List<List<Pair<String, String>>> result2 = komoran.analyze(search);
+		try {
+			for (List<Pair<String, String>> eojeolResult : result2) {
+				for (Pair<String, String> wordMorph : eojeolResult) {
+					if (wordMorph.getSecond().equals("NNG")|| wordMorph.getSecond().equals("NNP")) {
+						/*sent.add(wordMorph.getFirst());*/
+						sentence += "'";
+						sentence += wordMorph.getFirst();
+						sentence += "'";
+						sentence += ", ";
+					}
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		sentence = sentence.substring(0,sentence.length()-2);
+		sentence += ")";
+
+		int totalRecord = dao.getTotalCount(sentence);
+		
+		System.out.println(totalRecord);
 		
 		if(totalRecord <=0){
-
 			mv.addObject("list",null);
 			return mv;		
 		}
-
+		
 		page.setTotalRecord(totalRecord);
 		page.setTotalPage();		
 		String cPage = request.getParameter("cPage");
@@ -56,12 +80,11 @@ public class Controller {
 		Map<String, Object> map = new HashMap<>();
 		map.put("begin", page.getBegin());
 		map.put("end", page.getEnd());
-		map.put("keyword", search);	
+		map.put("keyword", sentence);	
 		List<ContentVO> list = dao.searchContent(map);	
 		int idx;
 		int count;
 		for (ContentVO contentVO : list) {
-			/*System.out.println(contentVO.getContent());*/
 			if(contentVO.getContent() != null){
 				StringTokenizer st = new StringTokenizer(contentVO.getContent(), "?.!");
 				idx = 0;
@@ -69,17 +92,16 @@ public class Controller {
 				String result="", temp;
 				while(st.hasMoreTokens()){
 					temp = st.nextToken();
-					if(idx == Integer.parseInt(contentVO.getPosition()) || count != 0){
+					
 						result += temp;  
 						count++;
 						if(count == 2)
 							break;
-					}
 					idx++;
 				}
-				
-				System.out.print(contentVO.getPosition()+" : ");
 				System.out.println(result);
+			/*	System.out.print(contentVO.getPosition()+" : ");
+				System.out.println(result);*/
 				result = result.replaceAll(search, "<b>" + search + "</b>");
 				
 				contentVO.setContent(result);
@@ -91,6 +113,10 @@ public class Controller {
 				contentVO.setContent("");
 			}
 		}
+		
+	/*	public void insertWord(String splitStr, String position, List<Word> wordList) {*/
+			/*System.out.println(position);*/
+
 		
 		
 		mv.addObject("list", list);

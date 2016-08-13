@@ -15,10 +15,9 @@ public class Dao {
 	
 	
 	// 해당 범위의 데이터 가져오기
-	public List<ContentVO> searchContent(Map<String, Object> map){
+/*	public List<ContentVO> searchContent(Map<String, Object> map){
 		List<WordVO> wordList = template.selectList("searchKeyword", map);
 		if(wordList.size()!=0){
-			// List<ContentVO> list = template.selectList("searchContent", wordList);
 			List<ContentVO> list = new ArrayList<>();
 			for(int i=0; i<wordList.size(); i++)
 				list.add(template.selectOne("searchContent", wordList.get(i).getContent_idx()));
@@ -35,12 +34,36 @@ public class Dao {
 			return list;
 		}
 		return null;
+	}*/
+	
+	// 해당 범위의 데이터 가져오기
+	public List<ContentVO> searchContent(Map<String, Object> map){
+		List<SentenceVO> sentence = template.selectList("searchKeyword", map);
+		if(sentence.size()!=0){
+			// List<ContentVO> list = template.selectList("searchContent", wordList);
+			List<ContentVO> list = new ArrayList<>();
+			for(int i=0; i<sentence.size(); i++)
+				list.add(template.selectOne("searchContent", sentence.get(i).getContent_idx()));
+			/*for(int i=0; i<list.size(); i++)
+				list.get(i).setPosition(wordList.get(i).getPosition());*/
+			
+			for(int i=0; i<list.size(); i++){
+				/*				System.out.println("content : " + list.get(i).getContent());
+				System.out.println("contentVO : " + list.get(i).getPosition());
+				System.out.println("wordVO : " + wordList.get(i).getPosition());*/
+			}
+			
+			return list;
+		}
+		return null;
 	}//문제
 	// 총 레코드 수 가져오기
 	public int getTotalCount(String keyword){
-		List<WordVO> wordList = template.selectList("searchAllKeyWord", keyword);
-		if(wordList.size()!=0)
-			return wordList.size();
+		System.out.println(keyword);
+		
+		int wordList = template.selectOne("searchAllKeyWord", keyword);
+		if(wordList != 0)
+			return wordList;
 		return 0;
 	}
 	

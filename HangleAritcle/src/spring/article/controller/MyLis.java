@@ -12,5 +12,4 @@ import org.springframework.web.context.WebApplicationContext;
  */
 @WebListener
 public class MyLis extends ContextLoaderListener implements ServletContextListener {
-	
 }
