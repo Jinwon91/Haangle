@@ -46,6 +46,7 @@ public class Controller {
 						sentence += wordMorph.getFirst();
 						sentence += "'";
 						sentence += ", ";
+						sent.add(wordMorph.getFirst());
 					}
 				}
 			}
@@ -86,22 +87,56 @@ public class Controller {
 		int count;
 		for (ContentVO contentVO : list) {
 			if(contentVO.getContent() != null){
+				StringTokenizer st2 = new StringTokenizer(contentVO.getPosition(), "/");
+//				System.out.println(contentVO.getPosition());
+				int[] position = new int[st2.countTokens()];
+				int c = 0;
+				while(st2.hasMoreTokens()){
+					position[c] = Integer.parseInt(st2.nextToken());
+//					System.out.print(position[c] + " ");
+					if(st2.countTokens() == c)
+						c = 0;
+					c++;
+				}
+				int a = 0;
+				for(int k = 0;k<position.length;k++){
+					for(int j = 0;j<=k;j++){
+						if(position[j]>position[k]){
+							a = position[j];
+							position[j] = position[k];
+							position[k] = a;
+						}
+					}
+				}
+//				for(int k = 0; k<position.length;k++ )
+//					System.out.print(position[k] + " ");
+				
+//				System.out.println();
 				StringTokenizer st = new StringTokenizer(contentVO.getContent(), "?.!");
 				idx = 0;
-				count = 0;
 				String result="", temp;
-				while(st.hasMoreTokens()){
-					temp = st.nextToken();
-						result += temp;  
-						count++;
-						if(count == 2)
+				
+				for(int k = 0; k<position.length;k++ ){
+					count = 0;
+					while(st.hasMoreTokens()){
+						temp = st.nextToken();
+						if(position[k] == count){
+							result += (temp + ".......");
+//							System.out.print(position[k]+"1");
+//							System.out.print(count+" ");
+							count=0;
 							break;
-					idx++;
+						}
+						count++;
+					}
 				}
-				System.out.println(result);
-			/*	System.out.print(contentVO.getPosition()+" : ");
-				System.out.println(result);*/
-				result = result.replaceAll(search, "<b>" + search + "</b>");
+
+//				sent.add(wordMorph.getFirst());
+				for (String i : sent) {
+//					System.out.println(i);
+					result = result.replaceAll(i, "<b>" + i + "</b>");
+				}
+//				result = result.replaceAll(search, "<b>" + search + "</b>");
 				
 				contentVO.setContent(result);
 				

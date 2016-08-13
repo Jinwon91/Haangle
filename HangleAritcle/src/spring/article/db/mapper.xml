@@ -53,6 +53,11 @@
 			) 
 			where r_num between #{begin} and #{end}
 	</select>
+	<select id = "getPosition" parameterType="spring.article.db.Position" resultType="String">
+	  select position
+      from word_table 
+      where content_idx = ${content_idx} and word in ${keyword}
+	</select>
 	
 <!-- 	<select id="searchKeyword" parameterType="java.util.Map" resultType="spring.article.db.WordVO">		
 		select * from (

@@ -3,7 +3,7 @@
 <!DOCTYPE>
 <html>
 <head>
-<link rel="shortcut icon" type="image/png" href = "pavi.png" />
+<link rel="shortcut icon" type="image/png" href = "pavi2.png" />
 <script type="text/javascript">
 	function search_go(f) {
 		f.action = "search.do";
