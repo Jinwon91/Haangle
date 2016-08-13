@@ -62,10 +62,10 @@
 		) where r_num between #{begin} and #{end}
 	</select> -->
 	
-	
 	<select id="searchContent" resultType="spring.article.db.ContentVO" parameterType="String">
 		select * from content_table where content_idx = #{content_idx}
 	</select>
+	
 	<!-- 
 	<select id="searchContent" resultType="spring.article.db.ContentVO" parameterType="java.util.List">
 		select * from content_table where 

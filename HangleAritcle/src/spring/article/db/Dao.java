@@ -45,14 +45,13 @@ public class Dao {
 			for(int i=0; i<sentence.size(); i++)
 				list.add(template.selectOne("searchContent", sentence.get(i).getContent_idx()));
 			/*for(int i=0; i<list.size(); i++)
-				list.get(i).setPosition(wordList.get(i).getPosition());*/
+				list.get(i).setPosition(sentence.get(i).getPosition());*/
 			
 			for(int i=0; i<list.size(); i++){
 				/*				System.out.println("content : " + list.get(i).getContent());
 				System.out.println("contentVO : " + list.get(i).getPosition());
 				System.out.println("wordVO : " + wordList.get(i).getPosition());*/
 			}
-			
 			return list;
 		}
 		return null;
