@@ -3,7 +3,7 @@
 <!DOCTYPE>
 <html>
 <head>
-<link rel="shortcut icon" type="image/png" href = "pavi2.png" />
+<link rel="shortcut icon" type="image/png" href = "pavi2.jpg" />
 <script type="text/javascript">
 	function search_go(f) {
 		f.action = "search.do";
@@ -35,7 +35,7 @@
 <title>Haaaaaaaangle !!!</title>
 </head>
 <body>
-	<img style="width: 300; margin-top: 200px" src="images/haanglepng.png" />
+	<img style="width: 300; margin-top: 200px" src="images/logo_hanchan.png" />
 	<form>
 		<input id="search" type="text" name="search" size="70%" placeholder="검색어" onkeypress="if(event.keyCode==13) { search_go(this.form);}">
 		<br />
