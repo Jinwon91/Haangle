@@ -41,7 +41,6 @@ public class Controller {
 			for (List<Pair<String, String>> eojeolResult : result2) {
 				for (Pair<String, String> wordMorph : eojeolResult) {
 					if (wordMorph.getSecond().equals("NNG")|| wordMorph.getSecond().equals("NNP")) {
-						/*sent.add(wordMorph.getFirst());*/
 						sentence += "'";
 						sentence += wordMorph.getFirst();
 						sentence += "'";
@@ -53,18 +52,20 @@ public class Controller {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		
+		if(sentence.trim().equalsIgnoreCase("(")){
+			mv.addObject("list",null);
+			return mv;
+		}
+		
 		sentence = sentence.substring(0,sentence.length()-2);
 		sentence += ")";
 
 		int totalRecord = dao.getTotalCount(sentence);
-		
-		System.out.println(totalRecord);
-		
-		if(totalRecord <=0){
-			mv.addObject("list",null);
-			return mv;		
-		}
-		
+			if(totalRecord <=0){
+				mv.addObject("list",null);
+				return mv;		
+			}
 		page.setTotalRecord(totalRecord);
 		page.setTotalPage();		
 		String cPage = request.getParameter("cPage");
@@ -88,12 +89,10 @@ public class Controller {
 		for (ContentVO contentVO : list) {
 			if(contentVO.getContent() != null){
 				StringTokenizer st2 = new StringTokenizer(contentVO.getPosition(), "/");
-//				System.out.println(contentVO.getPosition());
 				int[] position = new int[st2.countTokens()];
 				int c = 0;
 				while(st2.hasMoreTokens()){
 					position[c] = Integer.parseInt(st2.nextToken());
-//					System.out.print(position[c] + " ");
 					if(st2.countTokens() == c)
 						c = 0;
 					c++;
@@ -108,10 +107,6 @@ public class Controller {
 						}
 					}
 				}
-//				for(int k = 0; k<position.length;k++ )
-//					System.out.print(position[k] + " ");
-				
-//				System.out.println();
 				StringTokenizer st = new StringTokenizer(contentVO.getContent(), "?.!");
 				idx = 0;
 				String result="", temp;
@@ -122,8 +117,6 @@ public class Controller {
 						temp = st.nextToken();
 						if(position[k] == count){
 							result += (temp + ".......");
-//							System.out.print(position[k]+"1");
-//							System.out.print(count+" ");
 							count=0;
 							break;
 						}
@@ -131,15 +124,12 @@ public class Controller {
 					}
 				}
 
-//				sent.add(wordMorph.getFirst());
+
 				for (String i : sent) {
-//					System.out.println(i);
 					result = result.replaceAll(i, "<b>" + i + "</b>");
 				}
-//				result = result.replaceAll(search, "<b>" + search + "</b>");
-				
-				contentVO.setContent(result);
-				
+			
+				contentVO.setContent(result);				
 				idx = 0;
 				count = 0;
 				
@@ -147,14 +137,9 @@ public class Controller {
 				contentVO.setContent("");
 			}
 		}
-		
-	/*	public void insertWord(String splitStr, String position, List<Word> wordList) {*/
-			/*System.out.println(position);*/
-
-		
-		
 		mv.addObject("list", list);
 		mv.addObject("search", search);
+		mv.addObject("keyword",sent);
 		mv.addObject("page", page);
 
 		return mv;

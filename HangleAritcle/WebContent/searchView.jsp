@@ -126,6 +126,12 @@ input#search_text {
 
 	<div id="bodyContainer">
 		<br>
+		질의문 분석결과 : 
+		<c:forEach items="${keyword }" var="k">
+		${k }&nbsp;
+			</c:forEach>
+			<hr/>
+			<br />
 		<c:if test="${!empty list}">
 			<c:forEach items="${list }" var="k">
 				<ul>
